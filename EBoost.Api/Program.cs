@@ -9,6 +9,7 @@ using EBoost.Infrastructure.Data;
 using EBoost.Infrastructure.Data.Seed;
 using EBoost.Infrastructure.Identity;
 using EBoost.Infrastructure.Repositories;
+using EBoost.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -100,6 +101,8 @@ builder.Services.AddDbContext<EBoostDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
 
 //builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 //builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
@@ -126,6 +129,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPaymentService, RazorpayPaymentService>();
+
+
+builder.Services.AddScoped<IPasswordResetOtpRepository, PasswordResetOtpRepository>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 

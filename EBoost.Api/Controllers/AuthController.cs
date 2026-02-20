@@ -1,5 +1,8 @@
 ﻿using EBoost.Application.DTOs.Auth;
+using EBoost.Application.Interfaces.Services;
+using EBoost.Application.Services;
 using EBoost.Domain.Entities;
+using EBoost.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,10 +16,12 @@ public class AuthController : ControllerBase
 {
 
     private readonly AuthService _authService;
+    private readonly IPasswordResetService _passwordResetService;
 
-    public AuthController(AuthService authService)
+    public AuthController(AuthService authService , IPasswordResetService passwordResetService)
     {
         _authService = authService;
+        _passwordResetService = passwordResetService;
     }
 
 
@@ -137,6 +142,23 @@ public class AuthController : ControllerBase
 
             return Ok(new { message = "Profile updated successfully" });
         }
+
+
+    //forgot Password
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromForm]ForgotPasswordDto dto)
+    {
+        await _passwordResetService.SendOtpAsync(dto.Email);
+        return Ok("If the email exists, an OTP has been sent.");
+    }
+
+    //reset password
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromForm] ResetPasswordDto dto)
+    {
+        await _passwordResetService.ResetPasswordAsync(dto);
+        return Ok("Password reset successful");
+    }
 
 
 
