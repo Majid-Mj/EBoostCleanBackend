@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EBoost.Api/EBoost.Api.csproj" />
+  <Project Path="EBoost.Application/EBoost.Application.csproj" />
+  <Project Path="EBoost.Domain/EBoost.Domain.csproj" />
+  <Project Path="EBoost.Infrastructure/EBoost.Infrastructure.csproj" />
+</Solution>
