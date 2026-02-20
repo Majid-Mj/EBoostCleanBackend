@@ -31,6 +31,7 @@ public class EBoostDbContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ShippingAddress> ShippingAddresses { get; set; } = null!;
+    public DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
 
 
 

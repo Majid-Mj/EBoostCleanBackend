@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EBoost.Application\EBoost.Application.csproj" />
+    <ProjectReference Include="..\EBoost.Domain\EBoost.Domain.csproj" />
     <ProjectReference Include="..\EBoost.Infrastructure\EBoost.Infrastructure.csproj" />
   </ItemGroup>
 
