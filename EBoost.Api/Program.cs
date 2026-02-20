@@ -130,7 +130,6 @@ builder.Services.AddScoped<IPaymentService, RazorpayPaymentService>();
 
 
 
-
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddAuthorization(options =>

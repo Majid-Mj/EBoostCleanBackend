@@ -24,4 +24,23 @@ public class Order
     public string ShippingPostalCode { get; set; } = null!;
     public string ShippingCountry { get; set; } = null!;
 
+
+
+    public PaymentMethod PaymentMethod { get; set; }
+    public string? RazorpayOrderId { get; set; }
+    public string? TransactionId { get; set; }
+    public PaymentStatus PaymentStatus { get; set; }
+    public string? PaymentTransactionId { get; set; }
+    public DateTime? PaymentDate { get; set; }
+
+
+
+
+    public decimal SubTotal { get; set; }
+
+    public decimal ShippingCost { get; set; }
+
+    public decimal GrandTotal { get; set; }
+    public decimal GrandCost { get; set; }
+
 }

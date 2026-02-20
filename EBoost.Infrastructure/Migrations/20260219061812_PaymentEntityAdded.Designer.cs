@@ -4,6 +4,7 @@ using EBoost.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EBoost.Infrastructure.Migrations
 {
     [DbContext(typeof(EBoostDbContext))]
-    partial class EBoostDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219061812_PaymentEntityAdded")]
+    partial class PaymentEntityAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -397,9 +400,6 @@ namespace EBoost.Infrastructure.Migrations
                     b.Property<string>("PaymentTransactionId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RazorpayOrderId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ShippingCity")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -439,9 +439,6 @@ namespace EBoost.Infrastructure.Migrations
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("TransactionId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

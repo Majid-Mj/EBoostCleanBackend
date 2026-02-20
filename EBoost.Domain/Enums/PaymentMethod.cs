@@ -6,13 +6,9 @@ using System.Threading.Tasks;
 
 namespace EBoost.Domain.Enums;
 
-public enum OrderStatus
+public enum PaymentMethod
 {
-    Pending = 1,
-    Confirmed = 3,
-    Shipped = 4,
-    Delivered = 5,
-    Cancelled = 6
-
+    UPI = 1,
+    Cards = 2,
+    CashOnDelivery = 3,
 }
-

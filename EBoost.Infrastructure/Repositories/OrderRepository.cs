@@ -102,4 +102,12 @@ public class OrderRepository : IOrderRepository
         return (orders, totalCount);
     }
 
+
+
+    public async Task<Order?> GetByRazorpayOrderIdAsync(string razorpayOrderId)
+    {
+        return await _context.Orders
+            .FirstOrDefaultAsync(o => o.RazorpayOrderId == razorpayOrderId);
+    }
+
 }
