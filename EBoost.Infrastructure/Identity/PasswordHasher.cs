@@ -6,12 +6,18 @@ namespace EBoost.Infrastructure.Identity;
 
 public class PasswordHasherService : IPasswordHasher
 {
-    private readonly PasswordHasher<object> _hasher = new();
+    //private readonly PasswordHasher<object> _hasher = new();
 
     public string HashPassword(string password)
-        => _hasher.HashPassword(null!, password);
+        => BCrypt.Net.BCrypt.HashPassword(password);
 
     public bool Verify(string hashedPassword, string password)
-        => _hasher.VerifyHashedPassword(null!, hashedPassword, password)
-           == PasswordVerificationResult.Success;
+        => BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+
+    //public string HashPassword(string password)
+    //    => _hasher.HashPassword(null!, password);
+
+    //public bool Verify(string hashedPassword, string password)
+    //    => _hasher.VerifyHashedPassword(null!, hashedPassword, password)
+    //       == PasswordVerificationResult.Success;
 }

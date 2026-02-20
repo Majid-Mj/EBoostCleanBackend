@@ -27,6 +27,8 @@ public class AuthService
         _refreshTokenGenerator = refreshTokenGenerator;
     }
 
+
+
     public async Task<AuthTokenResult?> Login(LoginDto dto)
     {
         var user = await _userRepo.GetByEmailAsync(dto.Email);
@@ -54,6 +56,48 @@ public class AuthService
             RefreshToken = refreshToken
         };
     }
+
+
+
+    //public async Task<AuthTokenResult?> Login(LoginDto dto)
+    //{
+    //    var user = await _userRepo.GetByEmailAsync(dto.Email);
+    //    if (user == null) return null;
+
+    //    //if (!_hasher.Verify(user.PasswordHash, dto.Password))
+    //    //    return null;
+
+    //    if (user.IsBlocked)
+    //        throw new UnauthorizedAccessException("Your account is blocked.");
+
+    //    var accessToken = _tokenService.CreateToken(user);
+    //    var refreshToken = _refreshTokenGenerator.Generate();
+
+    //    await _refreshTokenRepo.AddAsync(new RefreshToken
+    //    {
+    //        UserId = user.Id,
+    //        TokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken),
+    //        ExpiresAt = DateTime.UtcNow.AddDays(7)
+    //    });
+
+    //    return new AuthTokenResult
+    //    {
+    //        AccessToken = accessToken,
+    //        RefreshToken = refreshToken
+    //    };
+    //}
+    //public async Task<AuthTokenResult?> Login(LoginDto dto)
+    //{
+    //    var user = await _userRepo.GetByEmailAsync(dto.Email);
+    //    if (user == null) return null;
+
+    //    var accessToken = _tokenService.CreateToken(user);
+    //    return new AuthTokenResult
+    //    {
+    //        AccessToken = accessToken,
+    //        RefreshToken = "test"
+    //    };
+    //}
 
     public async Task Register(RegisterDto dto)
     {

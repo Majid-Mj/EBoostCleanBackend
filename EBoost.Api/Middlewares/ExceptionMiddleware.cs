@@ -43,5 +43,16 @@ public class ExceptionMiddleware
                 )
             );
         }
+
+        //catch (Exception ex)
+        //{
+        //    Console.WriteLine("===== FULL ERROR =====");
+        //    Console.WriteLine(ex.ToString());
+
+        //    context.Response.StatusCode = 400;
+        //    await context.Response.WriteAsJsonAsync(
+        //        ApiResponse<string>.Fail(ex.Message, 400)
+        //    );
+        //}
     }
 }
