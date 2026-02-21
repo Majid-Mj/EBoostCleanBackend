@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EBoost.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Internal;
+using System.Runtime.Serialization.Formatters;
 
 namespace EBoost.Infrastructure.Data;
 
