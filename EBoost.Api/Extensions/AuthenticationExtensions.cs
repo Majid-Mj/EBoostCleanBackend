@@ -65,11 +65,13 @@ public static class AuthenticationExtensions
 
             options.Events = new JwtBearerEvents
             {
-                //OnMessageReceived = context =>
-                //{
-                //    context.Token = context.Request.Cookies["access_token"];
-                //    return Task.CompletedTask;
-                //},
+                OnMessageReceived = context =>
+                {
+                    context.Token = context.Request.Cookies["access_token"];
+                    return Task.CompletedTask;
+                },
+
+
 
                 OnChallenge = context =>
                 {

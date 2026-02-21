@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+    
 namespace EBoost.Application.DTOs.Auth
 {
     public class RegisterDto
@@ -26,7 +26,7 @@ namespace EBoost.Application.DTOs.Auth
 
         [Required(ErrorMessage ="Password is required")]
         [MinLength(8, ErrorMessage ="Password must be at least 8 characters")]
-        [MaxLength(100, ErrorMessage ="Passwors cannot exceed 100 characters")]
+        [MaxLength(100, ErrorMessage ="Password cannot exceed 100 characters")]
         [RegularExpression(
             @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$",
             ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character")]
