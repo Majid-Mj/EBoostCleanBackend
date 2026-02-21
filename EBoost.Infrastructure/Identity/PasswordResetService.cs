@@ -71,8 +71,8 @@ public class PasswordResetService : IPasswordResetService
 
         otpRecord.IsUsed = true;
 
-        // 🔥 IMPORTANT: Invalidate refresh tokens
-        var tokens = _context.RefreshTokens
+        //Invalidate refresh tokens
+        var tokens =  _context.RefreshTokens
             .Where(t => t.UserId == user.Id);
 
         _context.RefreshTokens.RemoveRange(tokens);
