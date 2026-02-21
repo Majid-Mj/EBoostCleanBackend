@@ -4,6 +4,7 @@ using EBoost.Application.Interfaces.Services;
 using EBoost.Domain.Entities;
 using EBoost.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using EBoost.Application.DTOs.Auth;
 
 namespace EBoost.Infrastructure.Identity;
 
@@ -27,6 +28,8 @@ public class PasswordResetService : IPasswordResetService
     {
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == email);
+
+        email = email.Trim().ToLower();
 
         if (user == null)
             return;
