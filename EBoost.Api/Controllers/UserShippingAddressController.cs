@@ -31,6 +31,9 @@ namespace EBoost.Api.Controllers
             int userId = User.GetUserId();
 
             var address = _mapper.Map<ShippingAddress>(dto);
+            dto.FullName = dto.FullName.Trim();
+            dto.Street = dto.Street.Trim();
+            dto.City = dto.City.Trim();
 
             address.UserId = userId;
 

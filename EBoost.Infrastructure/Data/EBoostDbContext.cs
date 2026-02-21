@@ -70,6 +70,14 @@ public class EBoostDbContext : DbContext
         modelBuilder.Entity<Product>()
         .HasIndex(p => new { p.Name, p.CategoryId })
         .IsUnique();
+
+        //ShippingAddress
+        modelBuilder.Entity<ShippingAddress>()
+             .Property(a => a.FullName)
+             .HasMaxLength(100)
+             .IsRequired();
+
+
     }
 }
 
