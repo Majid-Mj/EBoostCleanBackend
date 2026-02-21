@@ -42,7 +42,7 @@ public class PasswordResetService : IPasswordResetService
         {
             Email = email,
             OtpHash = BCrypt.Net.BCrypt.HashPassword(otp),
-            ExpiryTime = DateTime.UtcNow.AddMinutes(10)
+            ExpiryTime = DateTime.UtcNow.AddMinutes(5)
         };
 
         await _otpRepository.AddAsync(otpEntity);
@@ -66,6 +66,9 @@ public class PasswordResetService : IPasswordResetService
 
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == dto.Email);
+
+        var normalizedEmail = dto.Email.Trim().ToLower();
+
 
         if (user == null)
             throw new Exception("Invalid request");
