@@ -72,7 +72,6 @@ public static class AuthenticationExtensions
                 },
 
 
-
                 OnChallenge = context =>
                 {
                     context.HandleResponse();

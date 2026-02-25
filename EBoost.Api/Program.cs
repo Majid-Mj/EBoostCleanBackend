@@ -95,8 +95,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 
-
-
 builder.Services.AddDbContext<EBoostDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -104,8 +102,6 @@ builder.Services.AddDbContext<EBoostDbContext>(options =>
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
-//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-//builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(EBoost.Application.Mappings.ProductProfile).Assembly);
 
 
@@ -129,8 +125,6 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPaymentService, RazorpayPaymentService>();
-
-
 builder.Services.AddScoped<IPasswordResetOtpRepository, PasswordResetOtpRepository>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -150,10 +144,23 @@ builder.Services.AddAuthorization(options =>
 });
 
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<ResponseHeaderMiddleware>();
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -169,9 +176,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Admin seeding failed:");
         Console.WriteLine(ex.Message);
     }
-}
-
-
+}   
 
 
 // Configure the HTTP request pipeline.
@@ -182,7 +187,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 

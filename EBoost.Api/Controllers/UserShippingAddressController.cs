@@ -70,6 +70,12 @@ namespace EBoost.Api.Controllers
 
             var address = await _SaddressRepo.GetByIdAsync(id);
 
+            dto.FullName = dto.FullName.Trim();
+            dto.City = dto.City.Trim();
+            dto.State = dto.State.Trim();
+            dto.Country = dto.Country.Trim();
+
+
             if (address == null)
                 return NotFound("Address not found");
 

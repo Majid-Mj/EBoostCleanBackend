@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromForm]RegisterDto dto)
+    public async Task<IActionResult> Register([FromBody]RegisterDto dto)
     {
         await _authService.Register(dto);
         return Ok("User registered successfully");
@@ -34,10 +34,10 @@ public class AuthController : ControllerBase
     
 
     [HttpPost("login")]
-     public async Task<IActionResult> Login([FromForm]LoginDto dto)
+     public async Task<IActionResult> Login([FromBody]LoginDto dto)
     {
         var result = await _authService.Login(dto);
-
+         
         if (result == null)
             return Unauthorized("Invalid email or password");
 
@@ -46,7 +46,7 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.AddMinutes(15)
         });
 
@@ -54,7 +54,7 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.AddDays(7)
         });
 
@@ -65,8 +65,9 @@ public class AuthController : ControllerBase
         });
      }
 
-        [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh()
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Refresh()
         {
             var refreshToken = Request.Cookies["refresh_token"];
 
@@ -82,7 +83,7 @@ public class AuthController : ControllerBase
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddMinutes(15)
             });
 
@@ -90,7 +91,7 @@ public class AuthController : ControllerBase
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
@@ -102,25 +103,37 @@ public class AuthController : ControllerBase
         }
 
         //LogOut    Api
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
+    [HttpPost("logout")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Logout()
+    {
+        var refreshToken = Request.Cookies["refresh_token"];
+
+        if (!string.IsNullOrEmpty(refreshToken))
         {
-            var refreshToken = Request.Cookies["refresh_token"];
-
-            if (string.IsNullOrEmpty(refreshToken))
-                return Ok(new { message = "Already logged out" });
-
             await _authService.Logout(refreshToken);
-
-            Response.Cookies.Delete("access_token");
-            Response.Cookies.Delete("refresh_token");
-
-            return Ok(new { message = "Logged out successfully" });
         }
 
-        //GetProfile Data
-        [Authorize]
-        [HttpGet("get-Profile")]
+        Response.Cookies.Delete("access_token", new CookieOptions
+        {
+            Path = "/",
+            Secure = true,
+            SameSite = SameSiteMode.None
+        });
+
+        Response.Cookies.Delete("refresh_token", new CookieOptions
+        {
+            Path = "/",
+            Secure = true,
+            SameSite = SameSiteMode.None
+        });
+
+        return Ok(new { message = "Logged out successfully" });
+    }
+
+    //GetProfile Data
+    [Authorize]
+        [HttpGet("me")]
         public async Task<IActionResult> GetProfile()
         {
             var profile = await _authService.GetProfile(User);
