@@ -28,12 +28,23 @@ public class OrderRepository : IOrderRepository
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 
-    public async Task<List<Order>> GetByUserIdAsync(int userId)
+    public async Task<List<Order>> GetByUserIdAsync(int userId, string? searchQuery = null)
     {
-        return await _context.Orders
+        var query = _context.Orders
             .AsNoTracking()
             .Include(o => o.Items)
-            .Where(o => o.UserId == userId)
+            .Where(o => o.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var lowerQuery = searchQuery.ToLower();
+            query = query.Where(o => 
+                o.Items.Any(i => i.ProductName.ToLower().Contains(lowerQuery)) ||
+                o.Id.ToString().Contains(lowerQuery)
+            );
+        }
+
+        return await query
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }

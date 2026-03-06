@@ -41,7 +41,6 @@ public class OrderController : ControllerBase
         return Ok("Order placed successfully");
     }
 
-
     //[HttpPost("buy-now")]
     //public async Task<IActionResult> BuyNow(int productId , int quantity)
     //{
@@ -68,10 +67,10 @@ public class OrderController : ControllerBase
 
     //my Orders
     [HttpGet("my-orders")]
-    public async Task<IActionResult> GetMyOrders()
+    public async Task<IActionResult> GetMyOrders([FromQuery] string? searchQuery = null)
     {
         int userId = User.GetUserId();
-        var orders = await _orderService.GetMyOrdersAsync(userId);
+        var orders = await _orderService.GetMyOrdersAsync(userId, searchQuery);
         return Ok(orders);
     }
 
@@ -105,7 +104,7 @@ public class OrderController : ControllerBase
     // Get All Orders for admin
     [Authorize(Policy = "AdminOnly")]
     [HttpGet("admin")]
-    public async Task<IActionResult> GetAllOrders(int page, int pagesize , string? Status = null)
+    public async Task<IActionResult> GetAllOrders(int page = 1, int pagesize = 10, string? Status = null)
     {
         var (orders , totalCount) = 
             await _orderService.GetAllOrdersAsync(page, pagesize, Status);
@@ -137,5 +136,20 @@ public class OrderController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
+    [HttpPatch("{id:int}/items/{productId:int}/status")]
+    public async Task<IActionResult> UpdateItemStatus(
+    int id,
+    int productId,
+    [FromQuery] string status)
+    {
+        var result =
+            await _orderService.UpdateOrderItemStatusAsync(id, productId, status);
+
+        if (result == null)
+            return NotFound("Order or OrderItem not found");
+
+        return Ok(result);
+    }
      
 }

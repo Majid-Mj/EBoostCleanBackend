@@ -14,7 +14,7 @@ public interface IOrderService
     int? addressId,
     PaymentMethod paymentMethod);
     Task BuyNowAsync(int userId, int productId, int quantity, int? addressId, PaymentMethod paymentMethod);
-    Task<List<OrderDto>> GetMyOrdersAsync(int userId);
+    Task<List<OrderDto>> GetMyOrdersAsync(int userId, string? searchQuery = null);
     Task<OrderDto?> GetByIdAsync(int id, int userId);
     Task<OrderDto?> CancelOrderAsync(int orderId, int userId);
 
@@ -25,6 +25,11 @@ public interface IOrderService
 
     Task<OrderDto?> UpdateOrderStatusAsync(
     int orderId,
+    string newStatus);
+
+    Task<OrderDto?> UpdateOrderItemStatusAsync(
+    int orderId,
+    int productId,
     string newStatus);
 
     Task ConfirmPaymentAsync(int orderId, int userId, string transactionId);

@@ -11,7 +11,7 @@ public interface IOrderRepository
 {
     Task AddAsync(Order order);
     Task<Order?> GetByIdAsync(int id);
-    Task<List<Order>> GetByUserIdAsync(int userId);
+    Task<List<Order>> GetByUserIdAsync(int userId, string? searchQuery = null);
     Task<Order?> GetByIdForUpdateAsync(int id);
     Task SaveChangesAsync();
     Task ExecuteInTransactionAsync(Func<Task> action);

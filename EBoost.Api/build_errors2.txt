@@ -1,0 +1,12 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  EBoost.Domain -> C:\Project Full stack\EBoostClean\EBoost.Domain\bin\Debug\net8.0\EBoost.Domain.dll
+  EBoost.Application -> C:\Project Full stack\EBoostClean\EBoost.Application\bin\Debug\net8.0\EBoost.Application.dll
+  EBoost.Infrastructure -> C:\Project Full stack\EBoostClean\EBoost.Infrastructure\bin\Debug\net8.0\EBoost.Infrastructure.dll
+  EBoost.Api -> C:\Project Full stack\EBoostClean\EBoost.Api\bin\Debug\net8.0\EBoost.Api.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.20

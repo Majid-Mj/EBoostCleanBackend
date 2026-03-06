@@ -17,7 +17,9 @@ public class OrderProfile :Profile
             ForMember(dest => dest.Status,
         opt => opt.MapFrom(src => src.Status.ToString()));
 
-        CreateMap<OrderItem, OrderItemDto>();
+        CreateMap<OrderItem, OrderItemDto>()
+            .ForMember(dest => dest.Status, 
+            opt => opt.MapFrom(src => src.Status.ToString()));
 
         CreateMap<ShippingAddress, Order>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

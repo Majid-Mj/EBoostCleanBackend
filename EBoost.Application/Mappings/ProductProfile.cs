@@ -9,7 +9,9 @@ public class ProductProfile : Profile
     public ProductProfile()
     {
         CreateMap<CreateProductDto, Product>()
-            .ForMember(dest => dest.Images, opt => opt.Ignore());
+            .ForMember(dest => dest.Images, opt => opt.Ignore())
+            .ForMember(dest => dest.Description,
+                opt => opt.MapFrom(src => src.Description ?? string.Empty));
 
         CreateMap<UpdateProductDto, Product>()
             .ForMember(d => d.Id, o => o.Ignore())

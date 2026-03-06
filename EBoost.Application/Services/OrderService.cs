@@ -182,9 +182,9 @@ public class OrderService : IOrderService
 
 
     //My Orders
-    public async Task<List<OrderDto>> GetMyOrdersAsync(int userId)
+    public async Task<List<OrderDto>> GetMyOrdersAsync(int userId, string? searchQuery = null)
     {
-        var orders = await _orderRepo.GetByUserIdAsync(userId);
+        var orders = await _orderRepo.GetByUserIdAsync(userId, searchQuery);
 
         return _mapper.Map<List<OrderDto>>(orders);
     }
@@ -293,6 +293,42 @@ public class OrderService : IOrderService
             }
 
             order.Status = parsedStatus;
+        });
+
+        return _mapper.Map<OrderDto>(order);
+    }
+
+    //Update the Order Item Status
+    public async Task<OrderDto?> UpdateOrderItemStatusAsync(int orderId, int productId, string newStatus)
+    {
+        if (!Enum.TryParse<OrderStatus>(newStatus, true, out var parsedStatus))
+            throw new Exception("Invalid order status");
+
+        var order = await _orderRepo.GetByIdForUpdateAsync(orderId);
+
+        if (order == null)
+            return null;
+
+        var orderItem = order.Items.FirstOrDefault(i => i.ProductId == productId);
+        if (orderItem == null)
+            throw new Exception("Order item not found in this order");
+
+        if (!IsValidTransition(orderItem.Status, parsedStatus))
+            throw new Exception($"Cannot change item status from {orderItem.Status} to {parsedStatus}");
+
+        await _orderRepo.ExecuteInTransactionAsync(async () =>
+        {
+            if (parsedStatus == OrderStatus.Cancelled &&
+            orderItem.Status != OrderStatus.Cancelled)
+            {
+                var product = await _productRepo.GetByIdAsync(orderItem.ProductId);
+                if (product != null)
+                {
+                    product.Stock += orderItem.Quantity;
+                }
+            }
+
+            orderItem.Status = parsedStatus;
         });
 
         return _mapper.Map<OrderDto>(order);

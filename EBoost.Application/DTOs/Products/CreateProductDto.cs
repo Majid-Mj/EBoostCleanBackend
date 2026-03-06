@@ -17,12 +17,7 @@ public class CreateProductDto
         ErrorMessage = "Price must be greater than 0")]
     public decimal Price { get; set; }
 
-    [Required(ErrorMessage = "Description is required")]
-    [StringLength(500, MinimumLength = 5,
-    ErrorMessage = "Description must be between 5 and 500 characters")]
-    [RegularExpression(@"^(?=.*[a-zA-Z0-9]).+$",
-    ErrorMessage = "Description must contain at least one letter or number")]
-    public string Description { get; set; } = null!;
+    public string? Description { get; set; }
 
 
     [Required(ErrorMessage = "Category is required")]

@@ -12,7 +12,10 @@ public class OrderItem
 
     public string ProductName { get; set; } = null!;
     public decimal UnitPrice { get; set; }
+    public string? ProductImage { get; set; }
 
     public int Quantity { get; set; }
+
+    public EBoost.Domain.Enums.OrderStatus Status { get; set; } = EBoost.Domain.Enums.OrderStatus.Pending;
 }
     
