@@ -1,4 +1,5 @@
-﻿using EBoost.Application.DTOs.Order;
+using EBoost.Application.DTOs.Order;
+using EBoost.Domain.Entities;
 using EBoost.Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,10 @@ namespace EBoost.Application.Interfaces.Services;
 
 public interface IOrderService
 {
-    Task PlaceOrderFromCartAsync(int userId,
+    Task<Order> PlaceOrderFromCartAsync(int userId,
     int? addressId,
     PaymentMethod paymentMethod);
-    Task BuyNowAsync(int userId, int productId, int quantity, int? addressId, PaymentMethod paymentMethod);
+    Task<Order> BuyNowAsync(int userId, int productId, int quantity, int? addressId, PaymentMethod paymentMethod);
     Task<List<OrderDto>> GetMyOrdersAsync(int userId, string? searchQuery = null);
     Task<OrderDto?> GetByIdAsync(int id, int userId);
     Task<OrderDto?> CancelOrderAsync(int orderId, int userId);

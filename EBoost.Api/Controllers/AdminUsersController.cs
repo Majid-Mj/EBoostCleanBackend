@@ -1,7 +1,6 @@
 ﻿using EBoost.Api.Extensions;
 using EBoost.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EBoost.Api.Controllers;
@@ -57,6 +56,5 @@ public class AdminUsersController : ControllerBase
         await _userService.ToggleBlockUserAsync(id, adminId);
 
         return Ok("User block status updated");
-    }
-
+    } 
 }

@@ -1,4 +1,4 @@
-﻿using EBoost.Api.Extensions;
+using EBoost.Api.Extensions;
 using EBoost.Application.Interfaces.Services;
 using EBoost.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -33,35 +33,27 @@ public class OrderController : ControllerBase
     {
         int userId = User.GetUserId();
 
-        await _orderService.PlaceOrderFromCartAsync(
+        var order = await _orderService.PlaceOrderFromCartAsync(
             userId,
             dto.AddressId,
             dto.PaymentMethod);
 
-        return Ok("Order placed successfully");
+        return Ok(new { orderId = order.Id, message = "Order placed successfully" });
     }
-
-    //[HttpPost("buy-now")]
-    //public async Task<IActionResult> BuyNow(int productId , int quantity)
-    //{
-    //    int userId = User.GetUserId();
-    //    await _orderService.BuyNowAsync(userId, productId, quantity);
-    //    return Ok("Order placed successfully ");
-    //}
 
     [HttpPost("buy-now")]
     public async Task<IActionResult> BuyNow([FromForm]BuyNowCheckoutDto dto)
     {
         int userId = User.GetUserId();
 
-        await _orderService.BuyNowAsync(
+        var order = await _orderService.BuyNowAsync(
             userId,
             dto.ProductId,
             dto.Quantity,
             dto.AddressId,
             dto.PaymentMethod);
 
-        return Ok("Order placed successfully");
+        return Ok(new { orderId = order.Id, message = "Order placed successfully" });
     }
 
 

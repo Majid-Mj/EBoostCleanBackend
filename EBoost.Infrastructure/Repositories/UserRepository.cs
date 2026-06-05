@@ -51,6 +51,7 @@ public class UserRepository : IUserRepository
         var totalCount = await query.CountAsync();
 
         var users = await query
+            .Include(u => u.Role)
             .OrderByDescending(u => u.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

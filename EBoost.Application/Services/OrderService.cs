@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using EBoost.Application.DTOs.Order;
 using EBoost.Application.Interfaces.Repositories;
 using EBoost.Application.Interfaces.Services;
@@ -31,14 +31,14 @@ public class OrderService : IOrderService
     }
 
     //order from cart
-        public async Task PlaceOrderFromCartAsync(int userId,
+    public async Task<Order> PlaceOrderFromCartAsync(int userId,
         int? addressId,
         PaymentMethod paymentMethod)
-        {
-            var cart = await _cartRepo.GetByUserIdAsync(userId);
+    {
+        var cart = await _cartRepo.GetByUserIdAsync(userId);
 
-            if (cart == null || cart.Items == null || !cart.Items.Any())
-                throw new Exception("Cart is empty");
+        if (cart == null || cart.Items == null || !cart.Items.Any())
+            throw new Exception("Cart is empty");
 
         ShippingAddress address;
 
@@ -55,130 +55,135 @@ public class OrderService : IOrderService
                 ?? throw new Exception("Please set a default shipping address.");
         }
 
-        //getting default address
-        //var address = await _addressRepo.GetDefaultByUserIdAsync(userId);
+        if (address == null)
+            throw new Exception("Please set a default shipping address before placing order.");
 
+        Order? createdOrder = null;
 
-            if (address == null)
-                throw new Exception("Please set a default shipping address before placing order.");
-
-
-            await _orderRepo.ExecuteInTransactionAsync(async () =>
-            {
-                var order = new Order
-                {
-                    UserId = userId,
-                    Status = OrderStatus.Pending,
-                    OrderDate = DateTime.UtcNow,
-                };
-
-                _mapper.Map(address, order);
-
-                foreach (var cartItem in cart.Items)
-                {
-                    var product = await _productRepo.GetByIdAsync(cartItem.ProductId);
-
-                    if (product == null || !product.IsActive)
-                        throw new Exception("Invalid product");
-
-                    if (cartItem.Quantity > product.Stock)
-                        throw new Exception("Insufficient stock");
-
-                    product.Stock -= cartItem.Quantity;
-
-                    order.Items.Add(new OrderItem
-                    {
-                        ProductId = product.Id,
-                        ProductName = product.Name,
-                        UnitPrice = product.Price,
-                        Quantity = cartItem.Quantity
-                    });
-                }
-
-                order.TotalAmount = order.Items
-                    .Sum(i => i.UnitPrice * i.Quantity);
-
-                await _orderRepo.AddAsync(order);
-
-                object value = await _cartRepo.ClearCartAsync(cart.Id);
-            });
-        }  
-
-        //Buy now 
-        public async Task BuyNowAsync(int userId, int productId, int quantity ,  int? addressId, PaymentMethod paymentMethod)
+        await _orderRepo.ExecuteInTransactionAsync(async () =>
         {
-            var product = await _productRepo.GetByIdAsync(productId);
-
-            if (product == null || !product.IsActive)
-                throw new Exception("Invalid product");
-
-            if (quantity <= 0)
-                throw new Exception("Invalid quantity");
-
-            if (quantity > product.Stock)
-                throw new Exception("Insufficient stock");
-
-            //var address = await _addressRepo.GetDefaultByUserIdAsync(userId);
-            ShippingAddress address;
-
-            if (addressId.HasValue)
+            var order = new Order
             {
-                address = await _addressRepo.GetByIdAsync(addressId.Value);
+                UserId = userId,
+                Status = paymentMethod == PaymentMethod.CashOnDelivery
+                    ? OrderStatus.Confirmed
+                    : OrderStatus.Pending,
+                PaymentMethod = paymentMethod,
+                PaymentStatus = PaymentStatus.Pending,
+                OrderDate = DateTime.UtcNow,
+            };
 
-                if (address == null || address.UserId != userId)
-                    throw new Exception("Invalid shipping address");
-            }
-            else
+            _mapper.Map(address, order);
+
+            foreach (var cartItem in cart.Items)
             {
-                address = await _addressRepo.GetDefaultByUserIdAsync(userId)
-                    ?? throw new Exception("Please set a default shipping address.");
-            }
+                var product = await _productRepo.GetByIdAsync(cartItem.ProductId);
 
+                if (product == null || !product.IsActive)
+                    throw new Exception("Invalid product");
 
+                if (cartItem.Quantity > product.Stock)
+                    throw new Exception("Insufficient stock");
 
-            await _orderRepo.ExecuteInTransactionAsync(async () =>
-            {
-                product.Stock -= quantity;
-
-                var subTotal = quantity * product.Price;
-                var shippingCost = 50; // example flat rate
-                var grandTotal = subTotal + shippingCost;
-
-                var order = new Order
-                {
-                    UserId = userId,
-                    Status = paymentMethod == PaymentMethod.CashOnDelivery
-                        ? OrderStatus.Confirmed
-                        : OrderStatus.Pending,
-
-                    PaymentMethod = paymentMethod,
-                    PaymentStatus = paymentMethod == PaymentMethod.CashOnDelivery
-                        ? PaymentStatus.Pending
-                        : PaymentStatus.Pending,
-
-                    OrderDate = DateTime.UtcNow,
-                    SubTotal = subTotal,
-                    ShippingCost = shippingCost,
-                    GrandTotal = grandTotal
-                };
-
-
-                _mapper.Map(address, order);
-
+                product.Stock -= cartItem.Quantity;
 
                 order.Items.Add(new OrderItem
                 {
                     ProductId = product.Id,
                     ProductName = product.Name,
                     UnitPrice = product.Price,
-                    Quantity = quantity
+                    Quantity = cartItem.Quantity
                 });
+            }
 
-                order.TotalAmount = quantity * product.Price;
+            var subTotal = order.Items.Sum(i => i.UnitPrice * i.Quantity);
+            order.TotalAmount = subTotal;
+            order.SubTotal = subTotal;
+            order.ShippingCost = 0; // FREE shipping to match frontend
+            order.GrandTotal = subTotal;
 
-                await _orderRepo.AddAsync(order);
-            });
+            await _orderRepo.AddAsync(order);
+
+            await _cartRepo.ClearCartAsync(cart.Id);
+            createdOrder = order;
+        });
+
+        return createdOrder ?? throw new Exception("Order creation failed");
+    }  
+
+    //Buy now 
+    public async Task<Order> BuyNowAsync(int userId, int productId, int quantity, int? addressId, PaymentMethod paymentMethod)
+    {
+        var product = await _productRepo.GetByIdAsync(productId);
+
+        if (product == null || !product.IsActive)
+            throw new Exception("Invalid product");
+
+        if (quantity <= 0)
+            throw new Exception("Invalid quantity");
+
+        if (quantity > product.Stock)
+            throw new Exception("Insufficient stock");
+
+        ShippingAddress address;
+
+        if (addressId.HasValue)
+        {
+            address = await _addressRepo.GetByIdAsync(addressId.Value);
+
+            if (address == null || address.UserId != userId)
+                throw new Exception("Invalid shipping address");
         }
+        else
+        {
+            address = await _addressRepo.GetDefaultByUserIdAsync(userId)
+                ?? throw new Exception("Please set a default shipping address.");
+        }
+
+        Order? createdOrder = null;
+
+        await _orderRepo.ExecuteInTransactionAsync(async () =>
+        {
+            product.Stock -= quantity;
+
+            var subTotal = quantity * product.Price;
+            var shippingCost = 0; // FREE shipping to match frontend
+            var grandTotal = subTotal + shippingCost;
+
+            var order = new Order
+            {
+                UserId = userId,
+                Status = paymentMethod == PaymentMethod.CashOnDelivery
+                    ? OrderStatus.Confirmed
+                    : OrderStatus.Pending,
+
+                PaymentMethod = paymentMethod,
+                PaymentStatus = PaymentStatus.Pending,
+
+                OrderDate = DateTime.UtcNow,
+                SubTotal = subTotal,
+                ShippingCost = shippingCost,
+                GrandTotal = grandTotal
+            };
+
+            _mapper.Map(address, order);
+
+            order.Items.Add(new OrderItem
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                UnitPrice = product.Price,
+                Quantity = quantity
+            });
+
+            order.TotalAmount = subTotal;
+
+            await _orderRepo.AddAsync(order);
+            createdOrder = order;
+        });
+
+        return createdOrder ?? throw new Exception("Order creation failed");
+    }
 
 
     //My Orders

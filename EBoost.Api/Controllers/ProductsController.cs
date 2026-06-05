@@ -273,7 +273,7 @@ namespace EBoost.Api.Controllers
         decimal? minPrice,
         decimal? maxPrice,
         int page = 1,
-        int pageSize = 10)
+        int pageSize = 10)  
         {
             var (items, totalCount) = await _repo.FilterAsync(
                    categoryId,

@@ -56,7 +56,7 @@ public class CartService : ICartService
         await cartRepo.SaveChangesAsync();
     }
 
-
+    
     public async Task UpdateQuantityAsync(int userId, int productId, int quantity)
     {
         if (quantity <= 0)

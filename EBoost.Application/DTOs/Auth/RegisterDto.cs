@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-    
-namespace EBoost.Application.DTOs.Auth
+﻿using System.ComponentModel.DataAnnotations;
+
+ 
+namespace EBoost.Application.DTOs.Auth  
 {
     public class RegisterDto
     {

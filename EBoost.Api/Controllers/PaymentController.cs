@@ -1,4 +1,4 @@
-﻿using EBoost.Api.Extensions;
+using EBoost.Api.Extensions;
 using EBoost.Application.DTOs.Payment;
 using EBoost.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +10,7 @@ namespace EBoost.Api.Controllers;
 
 [Route("api/payment")]
 [ApiController]
+[Authorize]
 public class PaymentController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
