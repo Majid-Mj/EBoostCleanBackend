@@ -1,4 +1,4 @@
-﻿using EBoost.Api.Extensions;
+using EBoost.Api.Extensions;
 using EBoost.Api.Swagger;
 using EBoost.Application.Common.Responses;
 using EBoost.Application.Interfaces.Repositories;
@@ -17,7 +17,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+// ── Global crash guards ──────────────────────────────────────────────────────
+// Catches unhandled exceptions on background threads (e.g. Razorpay SDK internals)
+// and logs them instead of silently terminating the process.
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    Console.WriteLine("=== [FATAL] Unhandled AppDomain Exception ===");
+    Console.WriteLine(e.ExceptionObject?.ToString());
+};
 
+// Catches fire-and-forget Task exceptions that were never awaited
+TaskScheduler.UnobservedTaskException += (sender, e) =>
+{
+    Console.WriteLine("=== [FATAL] Unobserved Task Exception ===");
+    Console.WriteLine(e.Exception?.ToString());
+    e.SetObserved(); // Prevents process termination
+};
+// ────────────────────────────────────────────────────────────────────────────
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,7 +140,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IPaymentService, RazorpayPaymentService>();
+builder.Services.AddScoped<IPaymentService, EBoost.Infrastructure.Payments.StripePaymentService>();
 builder.Services.AddScoped<IPasswordResetOtpRepository, PasswordResetOtpRepository>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

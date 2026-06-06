@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,10 +8,8 @@ namespace EBoost.Application.Interfaces.Services;
 
 public interface IPaymentService
 {
-    Task<string> CreateRazorpayOrderAsync(int orderId);
-    Task<bool> VerifyPaymentAsync(
-        string razorpayOrderId,
-        string razorpayPaymentId,
-        string razorpaySignature);
+    Task<string> CreateCheckoutSessionAsync(int orderId);
+    Task<bool> VerifyPaymentAsync(string sessionId);
 }
+
 

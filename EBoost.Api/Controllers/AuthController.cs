@@ -1,4 +1,4 @@
-﻿using EBoost.Application.DTOs.Auth;
+using EBoost.Application.DTOs.Auth;
 using EBoost.Application.Interfaces.Services;
 using EBoost.Application.Services;
 using EBoost.Domain.Entities;
@@ -28,10 +28,21 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody]RegisterDto dto)
     {
-        await _authService.Register(dto);
-        return Ok("User registered successfully");
+        try
+        {
+            await _authService.Register(dto);
+            return Ok("User registered successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
-    
+
 
     [HttpPost("login")]
      public async Task<IActionResult> Login([FromBody]LoginDto dto)
@@ -47,7 +58,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddMinutes(15)
+            Expires = DateTime.UtcNow.AddMinutes(60)
         });
 
         Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
@@ -70,6 +81,11 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Refresh()
         {
             var refreshToken = Request.Cookies["refresh_token"];
+
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                refreshToken = Request.Headers["X-Refresh-Token"];
+            }
 
             if (string.IsNullOrEmpty(refreshToken))
                 return Unauthorized("Refresh token missing");
@@ -108,6 +124,10 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout()
     {
         var refreshToken = Request.Cookies["refresh_token"];
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            refreshToken = Request.Headers["X-Refresh-Token"];
+        }
 
         if (!string.IsNullOrEmpty(refreshToken))
         {
@@ -126,6 +146,14 @@ public class AuthController : ControllerBase
             Path = "/",
             Secure = true,
             SameSite = SameSiteMode.None
+        });
+
+        // Delete legacy PascalCase cookie left over from old Razorpay integration
+        Response.Cookies.Delete("RefreshToken", new CookieOptions
+        {
+            Path = "/",
+            Secure = false,
+            SameSite = SameSiteMode.Lax
         });
 
         return Ok(new { message = "Logged out successfully" });

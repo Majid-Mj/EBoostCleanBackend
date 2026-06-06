@@ -1,8 +1,10 @@
-﻿using EBoost.Application.DTOs.Auth;
+using EBoost.Application.DTOs.Auth;
 using EBoost.Application.Interfaces.Repositories;
 using EBoost.Application.Interfaces.Services;
 using EBoost.Domain.Entities;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 public class AuthService
 {
@@ -27,7 +29,15 @@ public class AuthService
         _refreshTokenGenerator = refreshTokenGenerator;
     }
 
-
+    /// <summary>
+    /// SHA-256 hash of a refresh token. Fast (~microseconds) vs BCrypt (~300ms).
+    /// Refresh tokens are random 256-bit strings — BCrypt's slow cost factor is unnecessary.
+    /// </summary>
+    private static string HashToken(string token)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
 
     public async Task<AuthTokenResult?> Login(LoginDto dto)
     {
@@ -46,7 +56,7 @@ public class AuthService
         await _refreshTokenRepo.AddAsync(new RefreshToken
         {
             UserId = user.Id,
-            TokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken),
+            TokenHash = HashToken(refreshToken),   // SHA-256, not BCrypt
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         });
 
@@ -56,48 +66,6 @@ public class AuthService
             RefreshToken = refreshToken
         };
     }
-
-
-
-    //public async Task<AuthTokenResult?> Login(LoginDto dto)
-    //{
-    //    var user = await _userRepo.GetByEmailAsync(dto.Email);
-    //    if (user == null) return null;
-
-    //    //if (!_hasher.Verify(user.PasswordHash, dto.Password))
-    //    //    return null;
-
-    //    if (user.IsBlocked)
-    //        throw new UnauthorizedAccessException("Your account is blocked.");
-
-    //    var accessToken = _tokenService.CreateToken(user);
-    //    var refreshToken = _refreshTokenGenerator.Generate();
-
-    //    await _refreshTokenRepo.AddAsync(new RefreshToken
-    //    {
-    //        UserId = user.Id,
-    //        TokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken),
-    //        ExpiresAt = DateTime.UtcNow.AddDays(7)
-    //    });
-
-    //    return new AuthTokenResult
-    //    {
-    //        AccessToken = accessToken,
-    //         RefreshToken = refreshToken
-    //    };
-    //}
-    //public async Task<AuthTokenResult?> Login(LoginDto dto)
-    //{
-    //    var user = await _userRepo.GetByEmailAsync(dto.Email);
-    //    if (user == null) return null;
-
-    //    var accessToken = _tokenService.CreateToken(user);
-    //    return new AuthTokenResult
-    //    {
-    //        AccessToken = accessToken,
-    //        RefreshToken = "test"
-    //    };
-    //}
 
     public async Task Register(RegisterDto dto)
     {
@@ -110,14 +78,12 @@ public class AuthService
         if (existingUser != null)
             throw new InvalidOperationException("User already exists.");
 
-            
-
         var hashedPassword = _hasher.HashPassword(dto.Password);
 
         var user = new User
         {
             FullName = dto.FullName.Trim(),
-            Email = email,  
+            Email = email,
             PasswordHash = hashedPassword,
             RoleId = 1
         };
@@ -125,31 +91,25 @@ public class AuthService
         await _userRepo.AddAsync(user);
     }
 
-
-    //refreshing the token
+    // Refresh tokens — O(1) direct DB lookup by SHA-256 hash
     public async Task<AuthTokenResult?> RefreshTokens(string refreshToken)
     {
-        var validTokens = await _refreshTokenRepo.GetAllValidAsync();
+        var hash = HashToken(refreshToken);
+        var storedToken = await _refreshTokenRepo.GetByHashAsync(hash);
 
-        var storedToken = validTokens.FirstOrDefault(t =>
-            BCrypt.Net.BCrypt.Verify(refreshToken, t.TokenHash));
-
-        if (storedToken.User == null)
+        if (storedToken == null || storedToken.User == null)
             return null;
-
 
         storedToken.IsRevoked = true;
 
         var user = storedToken.User;
-
-
         var newAccessToken = _tokenService.CreateToken(user);
         var newRefreshToken = _refreshTokenGenerator.Generate();
 
         var newRefreshEntity = new RefreshToken
         {
             UserId = user.Id,
-            TokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken),
+            TokenHash = HashToken(newRefreshToken),
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         };
 
@@ -162,24 +122,15 @@ public class AuthService
         };
     }
 
-    //Logout logic
+    // Logout — O(1) direct revoke by SHA-256 hash
     public async Task<bool> Logout(string refreshToken)
     {
-        var tokens = await _refreshTokenRepo.GetAllValidAsync();
-
-        var storedToken = tokens.FirstOrDefault(t =>
-            BCrypt.Net.BCrypt.Verify(refreshToken, t.TokenHash));
-
-        if (storedToken == null)
-            return false;
-
-        await _refreshTokenRepo.RevokeAsync(storedToken.UserId);
-
+        var hash = HashToken(refreshToken);
+        await _refreshTokenRepo.RevokeByHashAsync(hash);
         return true;
     }
 
-
-    //ProfileLogic
+    // Profile Logic
     public async Task<GetProfileDto?> GetProfile(ClaimsPrincipal user)
     {
         var userId = int.Parse(
@@ -197,13 +148,12 @@ public class AuthService
             Role = entity.Role?.Name ?? "User",
             CreatedAt = entity.CreatedAt
         };
-
     }
 
-    //Update ProfileLogic
+    // Update Profile Logic
     public async Task<bool> UpdateProfile(
-    ClaimsPrincipal user,
-    UpdateProfileDto dto)
+        ClaimsPrincipal user,
+        UpdateProfileDto dto)
     {
         var userId = int.Parse(
             user.FindFirst(ClaimTypes.NameIdentifier)!.Value);

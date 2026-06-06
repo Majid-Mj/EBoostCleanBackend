@@ -28,6 +28,7 @@ public class OrderController : ControllerBase
     //    return Ok("Order placed successfully");
     //}
 
+    [Authorize(Policy = "UserOnly")]
     [HttpPost("add-from-cart")]
     public async Task<IActionResult> AddFromCart([FromForm]CartCheckoutDto dto)
     {
@@ -41,6 +42,7 @@ public class OrderController : ControllerBase
         return Ok(new { orderId = order.Id, message = "Order placed successfully" });
     }
 
+    [Authorize(Policy = "UserOnly")]
     [HttpPost("buy-now")]
     public async Task<IActionResult> BuyNow([FromForm]BuyNowCheckoutDto dto)
     {
@@ -58,6 +60,7 @@ public class OrderController : ControllerBase
 
 
     //my Orders
+    [Authorize(Policy = "UserOnly")]
     [HttpGet("my-orders")]
     public async Task<IActionResult> GetMyOrders([FromQuery] string? searchQuery = null)
     {
@@ -67,6 +70,7 @@ public class OrderController : ControllerBase
     }
 
     //Get OrderbyID
+    [Authorize(Policy = "UserOnly")]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetOrder(int id)
     {
@@ -80,6 +84,7 @@ public class OrderController : ControllerBase
     }
 
     //Patch for cancel Order
+    [Authorize(Policy = "UserOnly")]
     [HttpPatch("{id:int}/cancel")]
     public async Task<IActionResult> CancelOrder(int id)
     {

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,9 +75,23 @@ public class EBoostDbContext : DbContext
              .HasMaxLength(100)
              .IsRequired();
 
+        // Configure decimal precision for financial/monetary fields
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.Property(o => o.TotalAmount).HasPrecision(18, 2);
+            entity.Property(o => o.SubTotal).HasPrecision(18, 2);
+            entity.Property(o => o.ShippingCost).HasPrecision(18, 2);
+            entity.Property(o => o.GrandTotal).HasPrecision(18, 2);
+            entity.Property(o => o.GrandCost).HasPrecision(18, 2);
+        });
 
+        modelBuilder.Entity<OrderItem>()
+            .Property(oi => oi.UnitPrice)
+            .HasPrecision(18, 2);
 
-
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Price)
+            .HasPrecision(18, 2);
     }
 }
 

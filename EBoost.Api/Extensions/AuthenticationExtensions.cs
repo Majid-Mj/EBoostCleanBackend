@@ -1,4 +1,4 @@
-﻿using EBoost.Application.Common.Responses;
+using EBoost.Application.Common.Responses;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -67,7 +67,15 @@ public static class AuthenticationExtensions
             {
                 OnMessageReceived = context =>
                 {
-                    context.Token = context.Request.Cookies["access_token"];
+                    string authorization = context.Request.Headers["Authorization"];
+                    if (string.IsNullOrEmpty(authorization))
+                    {
+                        var cookieToken = context.Request.Cookies["access_token"];
+                        if (!string.IsNullOrEmpty(cookieToken))
+                        {
+                            context.Token = cookieToken;
+                        }
+                    }
                     return Task.CompletedTask;
                 },
 

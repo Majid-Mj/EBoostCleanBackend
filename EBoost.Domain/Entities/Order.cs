@@ -1,4 +1,4 @@
-﻿using EBoost.Domain.Entities;
+using EBoost.Domain.Entities;
 using EBoost.Domain.Enums;
 
 public class Order
@@ -28,6 +28,14 @@ public class Order
 
     public PaymentMethod PaymentMethod { get; set; }
     public string? RazorpayOrderId { get; set; }
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string? StripeSessionId 
+    { 
+        get => RazorpayOrderId; 
+        set => RazorpayOrderId = value; 
+    }
+
     public string? TransactionId { get; set; }
     public PaymentStatus PaymentStatus { get; set; }
     public string? PaymentTransactionId { get; set; }

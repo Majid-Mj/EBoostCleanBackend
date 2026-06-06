@@ -1,14 +1,15 @@
-﻿using System.Net;
-using System.Text.Json;
+using System.Net;
 using EBoost.Application.Common.Responses;
 
 public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionMiddleware> _logger;
 
-    public ExceptionMiddleware(RequestDelegate next)
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -17,42 +18,31 @@ public class ExceptionMiddleware
         {
             await _next(context);
         }
-        //catch (Exception ex)
-        //{
-        //    context.Response.ContentType = "application/json";
-        //    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        //    var response = ApiResponse<string>.Fail(
-        //        "An unexpected error occurred",
-        //        StatusCodes.Status500InternalServerError
-        //    );
-
-        //    await context.Response.WriteAsJsonAsync(response);
-
-        //}
-        catch (Exception ex)
+        catch (ApplicationException ex)
         {
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            // Known business-logic exception → 400 Bad Request
+            _logger.LogWarning(ex,
+                "[Middleware] ApplicationException for {Method} {Path}: {Msg}",
+                context.Request.Method, context.Request.Path, ex.Message);
+
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
 
             await context.Response.WriteAsJsonAsync(
-                ApiResponse<string>.Fail(
-                    //ex.Message, 
-                    //StatusCodes.Status500InternalServerError
-
-                    ex.InnerException?.Message ?? ex.Message
-                )
-            );
+                ApiResponse<string>.Fail(ex.InnerException?.Message ?? ex.Message, 400));
         }
+        catch (Exception ex)
+        {
+            // Unexpected exception → 500 Internal Server Error
+            _logger.LogError(ex,
+                "[Middleware] Unhandled exception for {Method} {Path}",
+                context.Request.Method, context.Request.Path);
 
-        //catch (Exception ex)
-        //{
-        //    Console.WriteLine("===== FULL ERROR =====");
-        //    Console.WriteLine(ex.ToString());
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
 
-        //    context.Response.StatusCode = 400;
-        //    await context.Response.WriteAsJsonAsync(
-        //        ApiResponse<string>.Fail(ex.Message, 400)
-        //    );
-        //}
+            await context.Response.WriteAsJsonAsync(
+                ApiResponse<string>.Fail("An unexpected server error occurred. Please try again later."));
+        }
     }
 }
