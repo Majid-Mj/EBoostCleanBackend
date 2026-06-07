@@ -64,8 +64,20 @@ public class StripePaymentService : IPaymentService
                 throw new ApplicationException($"Invalid order amount: \u20b9{order.GrandTotal}");
             }
 
-            // AllowedOrigins / base URL configuration
-            var domain = _config["AllowedOrigins"] ?? "http://localhost:5173";
+            // Resolve front-end redirect base URL dynamically
+            var domain = _config["ClientUrl"];
+            if (string.IsNullOrWhiteSpace(domain))
+            {
+                var corsOrigins = _config.GetSection("Cors:AllowedOrigins").Get<string[]>();
+                if (corsOrigins != null && corsOrigins.Length > 0)
+                {
+                    domain = corsOrigins.FirstOrDefault(o => !o.Contains("localhost")) ?? corsOrigins[0];
+                }
+            }
+            if (string.IsNullOrWhiteSpace(domain))
+            {
+                domain = "http://localhost:5173";
+            }
             domain = domain.TrimEnd('/');
 
             var options = new SessionCreateOptions
@@ -130,6 +142,13 @@ public class StripePaymentService : IPaymentService
 
             if (sessionId.StartsWith("demo_success_payment_"))
             {
+                var currentEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+                if (!currentEnv.Equals("Development", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("[Stripe] Blocked mock payment verification attempt. Mock payments are only enabled in Development mode.");
+                    return false;
+                }
+
                 _logger.LogInformation("[Stripe] Simulating successful payment for SessionId: {SessionId}", sessionId);
                 var parts = sessionId.Split('_');
                 if (parts.Length >= 4 && int.TryParse(parts[3], out int parsedOrderId))

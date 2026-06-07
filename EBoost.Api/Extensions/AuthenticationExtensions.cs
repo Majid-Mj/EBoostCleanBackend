@@ -38,7 +38,17 @@ public static class AuthenticationExtensions
     this IServiceCollection services,
     IConfiguration configuration)
     {
-        var key = Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!);
+        var jwtKey = configuration["Jwt:Key"];
+        if (string.IsNullOrEmpty(jwtKey))
+        {
+            throw new InvalidOperationException("JWT Key must be configured. Please define the 'Jwt:Key' config parameter (e.g. as environment variable 'Jwt__Key' in production).");
+        }
+        if (jwtKey.Length < 16)
+        {
+            throw new InvalidOperationException("JWT Key is too short. It must be at least 128 bits (16 characters) long.");
+        }
+
+        var key = Encoding.UTF8.GetBytes(jwtKey);
 
         services.AddAuthentication(options =>
         {

@@ -108,7 +108,7 @@ public class OrderController : ControllerBase
 
         return Ok(new
         {
-            ToatalCount = totalCount,
+            TotalCount = totalCount,
             Page = page,
             PageSize = pagesize,
             Data = orders

@@ -1,4 +1,4 @@
-﻿using EBoost.Domain.Entities;
+using EBoost.Domain.Entities;
 using EBoost.Application.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,7 +29,7 @@ public static class AdminSeeder
 
         // 2️⃣ Backfill users without role
         var usersWithoutRole = await context.Users
-            .Where(u => u.RoleId == null)
+            .Where(u => u.RoleId == 0)
             .ToListAsync();
 
         if (usersWithoutRole.Any())
@@ -41,16 +41,19 @@ public static class AdminSeeder
         }
 
         // 3️⃣ Ensure admin user
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_SEED_EMAIL") ?? "admin@eboost.com";
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_SEED_PASSWORD") ?? "Admin@123";
+
         var admin = await context.Users
-            .FirstOrDefaultAsync(u => u.Email == "admin@eboost.com");
+            .FirstOrDefaultAsync(u => u.Email == adminEmail);
 
         if (admin == null)
         {
             context.Users.Add(new User
             {
                 FullName = "System Administrator",
-                Email = "admin@eboost.com",
-                PasswordHash = hasher.HashPassword("Admin@123"),
+                Email = adminEmail,
+                PasswordHash = hasher.HashPassword(adminPassword),
                 RoleId = adminRoleId,
                 CreatedAt = DateTime.UtcNow
             });

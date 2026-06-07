@@ -36,13 +36,54 @@ public class EBoostDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
+        // Apply Entity Configurations from Assembly (Product, Category, ProductImage)
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(EBoostDbContext).Assembly);
+
+        // Configure User constraints and index
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasIndex(u => u.Email)
+                  .IsUnique();
+
+            entity.Property(u => u.Email)
+                  .IsRequired()
+                  .HasMaxLength(256);
+
+            entity.Property(u => u.PasswordHash)
+                  .IsRequired()
+                  .HasMaxLength(256);
+        });
+
+        // Configure RefreshToken index and constraints
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasIndex(t => t.TokenHash);
+            entity.Property(t => t.TokenHash)
+                  .IsRequired()
+                  .HasMaxLength(128);
+        });
+
+        // Configure PasswordResetOtp index and constraints
+        modelBuilder.Entity<PasswordResetOtp>(entity =>
+        {
+            entity.HasIndex(o => o.Email);
+            entity.Property(o => o.Email)
+                  .IsRequired()
+                  .HasMaxLength(256);
+            entity.Property(o => o.OtpHash)
+                  .IsRequired()
+                  .HasMaxLength(128);
+        });
+
         modelBuilder.Entity<User>()
             .HasOne(u => u.Role)
             .WithMany(r => r.Users)
             .HasForeignKey(u => u.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        //Fluent Configuration for wislist 
+        //Fluent Configuration for wishlist 
         //for prevent the duplicate Product and one wishlist per user;
         modelBuilder.Entity<Wishlist>()
             .HasIndex(w => w.UserId)
@@ -61,19 +102,9 @@ public class EBoostDbContext : DbContext
             .HasIndex(ci => new { ci.CartId, ci.ProductId })
             .IsUnique();
 
-        modelBuilder.Entity<Category>()
-        .HasIndex(c => c.Name)
-        .IsUnique();
-
         modelBuilder.Entity<Product>()
-        .HasIndex(p => new { p.Name, p.CategoryId })
-        .IsUnique();
-
-        //ShippingAddress
-        modelBuilder.Entity<ShippingAddress>()
-             .Property(a => a.FullName)
-             .HasMaxLength(100)
-             .IsRequired();
+            .HasIndex(p => new { p.Name, p.CategoryId })
+            .IsUnique();
 
         // Configure decimal precision for financial/monetary fields
         modelBuilder.Entity<Order>(entity =>
@@ -87,10 +118,6 @@ public class EBoostDbContext : DbContext
 
         modelBuilder.Entity<OrderItem>()
             .Property(oi => oi.UnitPrice)
-            .HasPrecision(18, 2);
-
-        modelBuilder.Entity<Product>()
-            .Property(p => p.Price)
             .HasPrecision(18, 2);
     }
 }

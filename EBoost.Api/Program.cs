@@ -186,13 +186,20 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<EBoostDbContext>();
+        
+        // Automatically apply pending EF Core migrations on startup
+        if (context.Database.IsRelational())
+        {
+            await context.Database.MigrateAsync();
+        }
+
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         await AdminSeeder.SeedAsync(context, hasher);
     }
     catch (Exception ex)
     {
-        Console.WriteLine("Admin seeding failed:");
+        Console.WriteLine("Database migration or admin seeding failed:");
         Console.WriteLine(ex.Message);
     }
 }   

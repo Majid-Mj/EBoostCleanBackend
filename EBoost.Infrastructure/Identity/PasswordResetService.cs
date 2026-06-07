@@ -1,4 +1,4 @@
-﻿using EBoost.Application.DTOs.Auth;
+using EBoost.Application.DTOs.Auth;
 using EBoost.Application.Interfaces.Repositories;
 using EBoost.Application.Interfaces.Services;
 using EBoost.Domain.Entities;
@@ -26,36 +26,39 @@ public class PasswordResetService : IPasswordResetService
 
     public async Task SendOtpAsync(string email)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == email);
+        var normalizedEmail = email.Trim().ToLower();
 
-        email = email.Trim().ToLower();
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
 
         if (user == null)
             return;
 
-        var otp = new Random().Next(100000, 999999).ToString();
+        // Generate a cryptographically secure 6-digit OTP
+        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
 
-        await _otpRepository.RemoveExistingOtpsAsync(email);
+        await _otpRepository.RemoveExistingOtpsAsync(normalizedEmail);
 
         var otpEntity = new PasswordResetOtp
         {
-            Email = email,
+            Email = normalizedEmail,
             OtpHash = BCrypt.Net.BCrypt.HashPassword(otp),
-            ExpiryTime = DateTime.UtcNow.AddMinutes(5)
+            ExpiryTime = DateTime.UtcNow.AddMinutes(10) // 10 minutes matches the email text
         };
 
         await _otpRepository.AddAsync(otpEntity);
         await _otpRepository.SaveChangesAsync();
 
-        await _emailService.SendAsync(email,
+        await _emailService.SendAsync(normalizedEmail,
            "EBoost Password Reset OTP",
            $"Your OTP is {otp}. It expires in 10 minutes.");
     }
 
     public async Task ResetPasswordAsync(ResetPasswordDto dto)
     {
-        var otpRecord = await _otpRepository.GetLatestValidOtpAsync(dto.Email);
+        var normalizedEmail = dto.Email.Trim().ToLower();
+
+        var otpRecord = await _otpRepository.GetLatestValidOtpAsync(normalizedEmail);
 
         if (otpRecord == null ||
             otpRecord.ExpiryTime < DateTime.UtcNow ||
@@ -65,10 +68,7 @@ public class PasswordResetService : IPasswordResetService
         }
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == dto.Email);
-
-        var normalizedEmail = dto.Email.Trim().ToLower();
-
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
 
         if (user == null)
             throw new Exception("Invalid request");
@@ -77,8 +77,8 @@ public class PasswordResetService : IPasswordResetService
 
         otpRecord.IsUsed = true;
 
-        //Invalidate refresh tokens
-        var tokens =  _context.RefreshTokens
+        // Invalidate refresh tokens
+        var tokens = _context.RefreshTokens
             .Where(t => t.UserId == user.Id);
 
         _context.RefreshTokens.RemoveRange(tokens);

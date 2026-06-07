@@ -77,7 +77,7 @@ public class OrderService : IOrderService
 
             foreach (var cartItem in cart.Items)
             {
-                var product = await _productRepo.GetByIdAsync(cartItem.ProductId);
+                var product = await _productRepo.GetByIdForUpdateAsync(cartItem.ProductId);
 
                 if (product == null || !product.IsActive)
                     throw new Exception("Invalid product");
@@ -114,16 +114,8 @@ public class OrderService : IOrderService
     //Buy now 
     public async Task<Order> BuyNowAsync(int userId, int productId, int quantity, int? addressId, PaymentMethod paymentMethod)
     {
-        var product = await _productRepo.GetByIdAsync(productId);
-
-        if (product == null || !product.IsActive)
-            throw new Exception("Invalid product");
-
         if (quantity <= 0)
             throw new Exception("Invalid quantity");
-
-        if (quantity > product.Stock)
-            throw new Exception("Insufficient stock");
 
         ShippingAddress address;
 
@@ -144,6 +136,14 @@ public class OrderService : IOrderService
 
         await _orderRepo.ExecuteInTransactionAsync(async () =>
         {
+            var product = await _productRepo.GetByIdForUpdateAsync(productId);
+
+            if (product == null || !product.IsActive)
+                throw new Exception("Invalid product");
+
+            if (quantity > product.Stock)
+                throw new Exception("Insufficient stock");
+
             product.Stock -= quantity;
 
             var subTotal = quantity * product.Price;

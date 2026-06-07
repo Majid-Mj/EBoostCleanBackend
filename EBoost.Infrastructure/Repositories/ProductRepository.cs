@@ -1,4 +1,4 @@
-﻿    using EBoost.Application.Interfaces.Repositories;
+    using EBoost.Application.Interfaces.Repositories;
 using EBoost.Domain.Entities;
 using EBoost.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -132,7 +132,8 @@ public class ProductRepository : IProductRepository
     public async Task<Product?> GetByIdForUpdateAsync(int id)
     {
         return await _context.Products
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .FromSqlRaw("SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) WHERE Id = {0}", id)
+            .FirstOrDefaultAsync();
     }
 
 

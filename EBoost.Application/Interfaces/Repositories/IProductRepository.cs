@@ -1,4 +1,4 @@
-﻿using EBoost.Domain.Entities;
+using EBoost.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,5 +30,5 @@ public interface IProductRepository
     );
     Task<bool> ExistsAsync(string name, int categoryId);
     Task<bool> ExistsAsync(string name, int categoryId, int excludeId);
-
+    Task<Product?> GetByIdForUpdateAsync(int id);
 }
