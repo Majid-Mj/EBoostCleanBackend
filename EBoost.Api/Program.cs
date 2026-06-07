@@ -111,9 +111,14 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YOUR_AZURE_SQL_CONNECTION_STRING"))
+{
+    connectionString = "Server=.;Database=EBoost_EcommerceDb;Trusted_Connection=True;TrustServerCertificate=True";
+}
+
 builder.Services.AddDbContext<EBoostDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));

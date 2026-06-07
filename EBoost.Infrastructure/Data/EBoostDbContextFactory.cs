@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
@@ -17,10 +17,16 @@ public class EBoostDbContextFactory
 
         var optionsBuilder = new DbContextOptionsBuilder<EBoostDbContext>();
 
-        optionsBuilder.UseSqlServer(
-            configuration.GetConnectionString("DefaultConnection"));
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        // Graceful design-time fallback for CLI tools if running against a sanitized appsettings file
+        if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YOUR_AZURE_SQL_CONNECTION_STRING"))
+        {
+            connectionString = "Server=.;Database=EBoost_EcommerceDb;Trusted_Connection=True;TrustServerCertificate=True";
+        }
+
+        optionsBuilder.UseSqlServer(connectionString);
 
         return new EBoostDbContext(optionsBuilder.Options);
     }
 }
-    
