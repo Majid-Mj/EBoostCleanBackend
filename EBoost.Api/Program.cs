@@ -171,7 +171,8 @@ var allowedOrigins = builder.Configuration
     ?? new[]
     {
         "http://localhost:5173",
-        "https://eboost-ecommerce.vercel.app"
+        "https://eboost-ecommerce.vercel.app",
+        "https://eboost.vercel.app"
     };
 
 builder.Services.AddCors(options =>
