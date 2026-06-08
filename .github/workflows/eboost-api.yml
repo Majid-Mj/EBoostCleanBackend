@@ -43,12 +43,14 @@ jobs:
       with:
         name: webapp
         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
     - name: Azure Login
       uses: azure/login@v2
       with:
         client-id: ${{ vars.EBOOST_API_CLIENT_ID_1B42 }}
-	tenant-id: ${{ vars.EBOOST_API_TENANT_ID_771C }}
-	subscription-id: ${{ vars.EBOOST_API_SUBSCRIPTION_ID_771C }}
+        subscription-id: ${{ vars.EBOOST_API_SUBSCRIPTION_ID_771C }}
+        tenant-id: ${{ vars.EBOOST_API_TENANT_ID_771C }}
+
     - name: Deploy to Azure WebApp
       uses: azure/webapps-deploy@v2
       with:
