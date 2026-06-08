@@ -165,8 +165,14 @@ builder.Services.AddAuthorization(options =>
 });
 
 
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
-                     ?? new[] { "http://localhost:5173", "http://localhost:5174", "http://localhost:5175" };
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()
+    ?? new[]
+    {
+        "http://localhost:5173",
+        "https://your-frontend.vercel.app"
+    };
 
 builder.Services.AddCors(options =>
 {
