@@ -1,120 +1,395 @@
 <div align="center">
-  <h1>🚀 EBoost E-Commerce Backend (Clean Architecture)</h1>
-  <p>A high-performance, enterprise-grade e-commerce backend API built with ASP.NET Core, completely structured around Clean Architecture principles.</p>
+
+<br/>
+
+```
+  ███████╗██████╗  ██████╗  ██████╗ ███████╗████████╗
+  ██╔════╝██╔══██╗██╔═══██╗██╔═══██╗██╔════╝╚══██╔══╝
+  █████╗  ██████╔╝██║   ██║██║   ██║███████╗   ██║
+  ██╔══╝  ██╔══██╗██║   ██║██║   ██║╚════██║   ██║
+  ███████╗██████╔╝╚██████╔╝╚██████╔╝███████║   ██║
+  ╚══════╝╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝
+                                          · Backend API
+```
+
+**Enterprise-grade e-commerce API — built clean, deployed to the cloud.**
+
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![Azure](https://img.shields.io/badge/Azure-App_Service-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
+[![EF Core](https://img.shields.io/badge/EF_Core-Code--First-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://learn.microsoft.com/en-us/ef/core/)
+[![CI/CD](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=flat-square&logo=githubactions&logoColor=white)](../../actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)](./LICENSE)
+
+[API Docs (Swagger)](#) · [Frontend Repo](#) · [Report a Bug](../../issues)
+
+<br/>
+
 </div>
 
 ---
 
-## 🌟 Overview
+## What is EBoost Backend?
 
-The **EBoost Backend** serves as the powerhouse for the EBoost E-Commerce application. It provides secure, scalable, and robust RESTful APIs to manage users, products, orders, shopping carts, and payments. 
+The EBoost Backend is the engine behind the EBoost e-commerce platform. It exposes a secure, scalable RESTful API that handles everything — authentication, product management, cart & checkout, Stripe payments, and webhook processing — all structured around **Clean Architecture** for long-term maintainability and testability.
 
-Designed with strict adherence to **Clean Architecture**, the application enforces a clear separation of concerns, ensuring high maintainability, testability, and independence from external frameworks.
+> Already deployed to **Microsoft Azure** with a fully automated **GitHub Actions CI/CD pipeline**.
 
-## ☁️ Azure Deployment & CI/CD (High-Availability)
+<br/>
 
-This application is fully containerized/configured for the cloud and is actively deployed on **Microsoft Azure**.
+## Architecture
 
-- **App Service**: Hosted on Azure App Service (`eboost-api`), providing auto-scaling, SSL termination, and continuous availability.
-- **Database**: Powered by **Azure SQL Database**, offering enterprise-grade security, automated backups, and instant failover capabilities.
-- **Continuous Integration/Continuous Deployment (CI/CD)**: 
-  - Fully automated deployment pipeline via **GitHub Actions**.
-  - Every push to the `main` branch automatically triggers a build, runs tests, and deploys the latest production-ready code directly to the Azure Web App without downtime.
+The solution follows a strict four-layer Clean Architecture pattern where dependencies only point inward — never outward.
 
-## 🏗️ Clean Architecture Structure
+```
+┌──────────────────────────────────────────────────────┐
+│                   EBoost.Api                         │  ← Controllers, Middleware, DI, Swagger
+├──────────────────────────────────────────────────────┤
+│              EBoost.Infrastructure                   │  ← EF Core, Repositories, Stripe, Cloudinary
+├──────────────────────────────────────────────────────┤
+│               EBoost.Application                     │  ← DTOs, Interfaces, Services, Use Cases
+├──────────────────────────────────────────────────────┤
+│                 EBoost.Domain                        │  ← Entities, Value Objects, Domain Rules
+└──────────────────────────────────────────────────────┘
+         Zero external dependencies at the core ✓
+```
 
-The solution is divided into four highly decoupled layers:
+Each layer only knows about the layer directly below it — no shortcuts, no spaghetti.
 
-1. **`EBoost.Domain` (Enterprise Business Rules)**
-   - Contains Entities, Value Objects, and Domain exceptions.
-   - Zero dependencies on other projects or external frameworks.
-2. **`EBoost.Application` (Application Business Rules)**
-   - Contains DTOs, Interfaces, Service implementations, and Use Cases.
-   - Depends only on the Domain layer.
-3. **`EBoost.Infrastructure` (Frameworks & Drivers)**
-   - Implements Data Access (Entity Framework Core), Repositories, and third-party integrations (Stripe, Cloudinary).
-   - Depends on the Application layer to implement its interfaces.
-4. **`EBoost.Api` (Presentation / Interface Adapters)**
-   - The ASP.NET Core Web API layer.
-   - Contains Controllers, Middleware, Dependency Injection setup, and Swagger configurations.
+<br/>
 
-## 🛠️ Technology Stack
+## Tech Stack
 
-* **Framework:** ASP.NET Core 8.0/9.0 Web API
-* **Language:** C# 12+
-* **ORM:** Entity Framework Core (Code-First Approach)
-* **Database:** Azure SQL Database / Microsoft SQL Server
-* **Authentication:** JWT (JSON Web Tokens) with HttpOnly Cookie support for enhanced security.
-* **Payment Gateway:** Stripe API Integration
-* **Image Hosting:** Cloudinary Cloud Storage
-* **Documentation:** Swagger (OpenAPI)
+```
+Runtime         ASP.NET Core 8 · C# 12+
+ORM             Entity Framework Core (Code-First)
+Database        Azure SQL Database · Microsoft SQL Server
+Auth            JWT · HttpOnly Cookies · Refresh Token Rotation
+Payments        Stripe API · Webhook Processing
+Image Storage   Cloudinary
+Docs            Swagger / OpenAPI
+CI/CD           GitHub Actions → Azure App Service
+```
 
-## 🔑 Key Features
+<br/>
 
-* **Advanced Authentication & Authorization:** Role-based access control (Admin vs. Customer), secure JWT issuance, and refresh token rotation.
-* **Product Management:** Full CRUD capabilities with multi-image support (uploaded securely to Cloudinary).
-* **Cart & Checkout Flow:** Seamless shopping cart state management transitioned into Stripe checkout sessions.
-* **Webhook Processing:** Secure Stripe Webhook listener to verify payments and automatically update order statuses asynchronously.
-* **Global Error Handling:** Custom exception-handling middleware providing standardized API problem details.
+## Key Features
 
-## 💻 Getting Started (Local Development)
+| Feature | Details |
+|---|---|
+| 🔐 **Auth & Authorization** | JWT issuance, refresh token rotation, role-based access (Admin / Customer) |
+| 📦 **Product Management** | Full CRUD with multi-image upload via Cloudinary |
+| 🛒 **Cart & Checkout** | Cart state management flowing into Stripe checkout sessions |
+| ⚡ **Webhook Processing** | Async Stripe webhook listener — verifies payments, updates order status automatically |
+| 🛡️ **Security** | BCrypt password hashing, HttpOnly cookies, SQL injection prevention, data sanitization |
+| ❌ **Global Error Handling** | Custom middleware returning standardized RFC 7807 problem details |
+
+<br/>
+
+## Cloud & CI/CD
+
+```
+Push to main
+     │
+     ▼
+GitHub Actions
+  ├── Build & compile
+  ├── Run tests
+  └── Deploy → Azure App Service (zero downtime)
+                    │
+                    ├── Azure SQL Database
+                    │     └── Automated backups · Instant failover
+                    └── Cloudinary
+                          └── Product image storage
+```
+
+Every push to `main` automatically ships to production — no manual deployments needed.
+
+<br/>
+
+## Getting Started
 
 ### Prerequisites
-- [.NET SDK](https://dotnet.microsoft.com/download)
-- SQL Server (LocalDB or Docker container)
-- Stripe Account (for API Keys)
-- Cloudinary Account (for Image hosting)
 
-### Installation & Setup
+- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- SQL Server (LocalDB or Docker)
+- [Stripe account](https://stripe.com/) — for API keys
+- [Cloudinary account](https://cloudinary.com/) — for image hosting
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/EBoostCleanBackend.git
-   cd EBoostCleanBackend
-   ```
+### 1 · Clone & navigate
 
-2. **Configure User Secrets or `appsettings.Development.json`:**
-   Navigate to the `EBoost.Api` directory and set up your environment variables:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=localhost;Database=EBoostDb;Trusted_Connection=True;MultipleActiveResultSets=true;Encrypt=False"
-     },
-     "JwtSettings": {
-       "Secret": "your-super-secret-256-bit-key",
-       "Issuer": "EBoost",
-       "Audience": "EBoostClient"
-     },
-     "StripeSettings": {
-       "SecretKey": "sk_test_...",
-       "WebhookSecret": "whsec_..."
-     },
-     "Cloudinary": {
-       "CloudName": "...",
-       "ApiKey": "...",
-       "ApiSecret": "..."
-     }
-   }
-   ```
+```bash
+git clone https://github.com/your-username/EBoostCleanBackend.git
+cd EBoostCleanBackend
+```
 
-3. **Apply Database Migrations:**
-   ```bash
-   dotnet ef database update --project EBoost.Infrastructure --startup-project EBoost.Api
-   ```
+### 2 · Configure secrets
 
-4. **Run the API:**
-   ```bash
-   dotnet run --project EBoost.Api
-   ```
-   The API will start at `https://localhost:5001`. Navigate to `https://localhost:5001/swagger` to explore the endpoints.
+In `EBoost.Api`, create or update `appsettings.Development.json`:
 
-## 🛡️ Security
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=EBoostDb;Trusted_Connection=True;Encrypt=False"
+  },
+  "JwtSettings": {
+    "Secret": "your-super-secret-256-bit-key",
+    "Issuer": "EBoost",
+    "Audience": "EBoostClient"
+  },
+  "StripeSettings": {
+    "SecretKey": "sk_test_...",
+    "WebhookSecret": "whsec_..."
+  },
+  "Cloudinary": {
+    "CloudName": "...",
+    "ApiKey": "...",
+    "ApiSecret": "..."
+  }
+}
+```
 
-This project implements modern security best practices:
-- Passwords are cryptographically hashed using **BCrypt**.
-- Tokens are transmitted securely, avoiding local storage XSS vulnerabilities where possible.
-- API endpoints are heavily sanitized to prevent SQL Injection and excessive data exposure.
+> 💡 **Tip:** Use [.NET User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets) in development to avoid committing sensitive values.
 
-## 🤝 Contributing
+### 3 · Apply migrations
 
-Contributions are welcome! Please open an issue or submit a pull request if you'd like to improve the architecture or add features.
+```bash
+dotnet ef database update \
+  --project EBoost.Infrastructure \
+  --startup-project EBoost.Api
+```
+
+### 4 · Run
+
+```bash
+dotnet run --project EBoost.Api
+```
+
+API live at `https://localhost:5001`  
+Swagger UI at `https://localhost:5001/swagger` 🎉
+
+<br/>
+
+## Security Practices
+
+- 🔑 Passwords hashed with **BCrypt** — never stored in plain text
+- 🍪 Tokens sent via **HttpOnly cookies** where possible, eliminating XSS via localStorage
+- 🧹 All inputs sanitized against SQL injection and over-posting attacks
+- 🔄 **Refresh token rotation** — old tokens are invalidated on every refresh cycle
+
+<br/>
+
+## Contributing
+
+Contributions are welcome!
+
+1. Fork the repo
+2. Create a branch: `git checkout -b feat/your-feature`
+3. Commit: `git commit -m 'feat: describe your change'`
+4. Push and open a Pull Request
+
+Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
+
+<br/>
+
+---
+
+<div align="center">
+  <sub>Powered by .NET · Deployed on Azure · Built with ☕ by <a href="https://github.com/your-username">@your-username</a></sub>
+</div><div align="center">
+
+<br/>
+
+```
+  ███████╗██████╗  ██████╗  ██████╗ ███████╗████████╗
+  ██╔════╝██╔══██╗██╔═══██╗██╔═══██╗██╔════╝╚══██╔══╝
+  █████╗  ██████╔╝██║   ██║██║   ██║███████╗   ██║
+  ██╔══╝  ██╔══██╗██║   ██║██║   ██║╚════██║   ██║
+  ███████╗██████╔╝╚██████╔╝╚██████╔╝███████║   ██║
+  ╚══════╝╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝
+                                          · Backend API
+```
+
+**Enterprise-grade e-commerce API — built clean, deployed to the cloud.**
+
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![Azure](https://img.shields.io/badge/Azure-App_Service-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
+[![EF Core](https://img.shields.io/badge/EF_Core-Code--First-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://learn.microsoft.com/en-us/ef/core/)
+[![CI/CD](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=flat-square&logo=githubactions&logoColor=white)](../../actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)](./LICENSE)
+
+[API Docs (Swagger)](#) · [Frontend Repo](#) · [Report a Bug](../../issues)
+
+<br/>
+
+</div>
+
+---
+
+## What is EBoost Backend?
+
+The EBoost Backend is the engine behind the EBoost e-commerce platform. It exposes a secure, scalable RESTful API that handles everything — authentication, product management, cart & checkout, Stripe payments, and webhook processing — all structured around **Clean Architecture** for long-term maintainability and testability.
+
+> Already deployed to **Microsoft Azure** with a fully automated **GitHub Actions CI/CD pipeline**.
+
+<br/>
+
+## Architecture
+
+The solution follows a strict four-layer Clean Architecture pattern where dependencies only point inward — never outward.
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   EBoost.Api                         │  ← Controllers, Middleware, DI, Swagger
+├──────────────────────────────────────────────────────┤
+│              EBoost.Infrastructure                   │  ← EF Core, Repositories, Stripe, Cloudinary
+├──────────────────────────────────────────────────────┤
+│               EBoost.Application                     │  ← DTOs, Interfaces, Services, Use Cases
+├──────────────────────────────────────────────────────┤
+│                 EBoost.Domain                        │  ← Entities, Value Objects, Domain Rules
+└──────────────────────────────────────────────────────┘
+         Zero external dependencies at the core ✓
+```
+
+Each layer only knows about the layer directly below it — no shortcuts, no spaghetti.
+
+<br/>
+
+## Tech Stack
+
+```
+Runtime         ASP.NET Core 8 · C# 12+
+ORM             Entity Framework Core (Code-First)
+Database        Azure SQL Database · Microsoft SQL Server
+Auth            JWT · HttpOnly Cookies · Refresh Token Rotation
+Payments        Stripe API · Webhook Processing
+Image Storage   Cloudinary
+Docs            Swagger / OpenAPI
+CI/CD           GitHub Actions → Azure App Service
+```
+
+<br/>
+
+## Key Features
+
+| Feature | Details |
+|---|---|
+| 🔐 **Auth & Authorization** | JWT issuance, refresh token rotation, role-based access (Admin / Customer) |
+| 📦 **Product Management** | Full CRUD with multi-image upload via Cloudinary |
+| 🛒 **Cart & Checkout** | Cart state management flowing into Stripe checkout sessions |
+| ⚡ **Webhook Processing** | Async Stripe webhook listener — verifies payments, updates order status automatically |
+| 🛡️ **Security** | BCrypt password hashing, HttpOnly cookies, SQL injection prevention, data sanitization |
+| ❌ **Global Error Handling** | Custom middleware returning standardized RFC 7807 problem details |
+
+<br/>
+
+## Cloud & CI/CD
+
+```
+Push to main
+     │
+     ▼
+GitHub Actions
+  ├── Build & compile
+  ├── Run tests
+  └── Deploy → Azure App Service (zero downtime)
+                    │
+                    ├── Azure SQL Database
+                    │     └── Automated backups · Instant failover
+                    └── Cloudinary
+                          └── Product image storage
+```
+
+Every push to `main` automatically ships to production — no manual deployments needed.
+
+<br/>
+
+## Getting Started
+
+### Prerequisites
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- SQL Server (LocalDB or Docker)
+- [Stripe account](https://stripe.com/) — for API keys
+- [Cloudinary account](https://cloudinary.com/) — for image hosting
+
+### 1 · Clone & navigate
+
+```bash
+git clone https://github.com/your-username/EBoostCleanBackend.git
+cd EBoostCleanBackend
+```
+
+### 2 · Configure secrets
+
+In `EBoost.Api`, create or update `appsettings.Development.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=EBoostDb;Trusted_Connection=True;Encrypt=False"
+  },
+  "JwtSettings": {
+    "Secret": "your-super-secret-256-bit-key",
+    "Issuer": "EBoost",
+    "Audience": "EBoostClient"
+  },
+  "StripeSettings": {
+    "SecretKey": "sk_test_...",
+    "WebhookSecret": "whsec_..."
+  },
+  "Cloudinary": {
+    "CloudName": "...",
+    "ApiKey": "...",
+    "ApiSecret": "..."
+  }
+}
+```
+
+> 💡 **Tip:** Use [.NET User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets) in development to avoid committing sensitive values.
+
+### 3 · Apply migrations
+
+```bash
+dotnet ef database update \
+  --project EBoost.Infrastructure \
+  --startup-project EBoost.Api
+```
+
+### 4 · Run
+
+```bash
+dotnet run --project EBoost.Api
+```
+
+API live at `https://localhost:5001`  
+Swagger UI at `https://localhost:5001/swagger` 🎉
+
+<br/>
+
+## Security Practices
+
+- 🔑 Passwords hashed with **BCrypt** — never stored in plain text
+- 🍪 Tokens sent via **HttpOnly cookies** where possible, eliminating XSS via localStorage
+- 🧹 All inputs sanitized against SQL injection and over-posting attacks
+- 🔄 **Refresh token rotation** — old tokens are invalidated on every refresh cycle
+
+<br/>
+
+## Contributing
+
+Contributions are welcome!
+
+1. Fork the repo
+2. Create a branch: `git checkout -b feat/your-feature`
+3. Commit: `git commit -m 'feat: describe your change'`
+4. Push and open a Pull Request
+
+Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
+
+<br/>
+
+---
+
+<div align="center">
+  <sub>Powered by .NET · Deployed on Azure · Built with ☕ by <a href="https://github.com/your-username">@your-username</a></sub>
+</div>
