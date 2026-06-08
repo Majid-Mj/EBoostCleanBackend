@@ -47,9 +47,9 @@ jobs:
     - name: Azure Login
       uses: azure/login@v2
       with:
-        client-id: ${{ vars.EBOOST_API_CLIENT_ID_1B42 }}
-        subscription-id: ${{ vars.EBOOST_API_SUBSCRIPTION_ID_771C }}
-        tenant-id: ${{ vars.EBOOST_API_TENANT_ID_771C }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
 
     - name: Deploy to Azure WebApp
       uses: azure/webapps-deploy@v2
