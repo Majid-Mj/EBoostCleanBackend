@@ -191,5 +191,5 @@ Please follow [Conventional Commits](https://www.conventionalcommits.org/) for c
 
 <br/>
 
----Deployed on Azure · Built with ☕ by <a href="https://github.com/your-username">@your-username</a></sub>
+---Deployed on Azure · Built with ☕ by <a href="https://github.com/your-username"></a></sub>
 </div>
