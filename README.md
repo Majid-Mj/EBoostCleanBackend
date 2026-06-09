@@ -187,7 +187,6 @@ Contributions are welcome!
 3. Commit: `git commit -m 'feat: describe your change'`
 4. Push and open a Pull Request
 
-Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
 
 <br/>
 
