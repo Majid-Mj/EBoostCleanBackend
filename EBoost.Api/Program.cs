@@ -117,8 +117,12 @@ if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("YO
     connectionString = "Server=.;Database=EBoost_EcommerceDb;Trusted_Connection=True;TrustServerCertificate=True";
 }
 
-builder.Services.AddDbContext<EBoostDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContextPool<EBoostDbContext>(options =>
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        // helps initial transient failures on cold start
+        sqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+    }));
 
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
@@ -199,15 +203,21 @@ using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<EBoostDbContext>();
         
-        // Automatically apply pending EF Core migrations on startup
-        if (context.Database.IsRelational())
+// IMPORTANT: Do NOT run EF Core migrations automatically on app startup.
+        // Migrations cause cold-start delays and can block first request.
+        // Run migrations out-of-band (CI/CD or startup job) instead.
+        // if (context.Database.IsRelational())
+        // {
+        //     await context.Database.MigrateAsync();
+        // }
+
+        // IMPORTANT: Avoid heavy database seeding on every cold start.
+        // Enable only if explicitly requested via environment variable.
+        if (builder.Configuration.GetValue<bool>("RUN_STARTUP_SEED"))
         {
-            await context.Database.MigrateAsync();
+            var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+            await AdminSeeder.SeedAsync(context, hasher);
         }
-
-        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-
-        await AdminSeeder.SeedAsync(context, hasher);
     }
     catch (Exception ex)
     {
@@ -224,8 +234,12 @@ using (var scope = app.Services.CreateScope())
 //    app.UseSwaggerUI();
 //}
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
