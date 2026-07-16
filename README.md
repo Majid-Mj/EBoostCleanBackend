@@ -129,7 +129,7 @@ In `EBoost.Api`, create or update `appsettings.Development.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=EBoostDb;Trusted_Connection=True;Encrypt=False"
+    "DefaultConnection": "Server=localhost;Database=EBoost;Trusted_Connection=True;Encrypt=False"
   },
   "JwtSettings": {
     "Secret": "your-super-secret-256-bit-key",
